@@ -2,7 +2,9 @@ package it.gmmz.anncsu.core
 
 import klite.AssetsHandler
 import klite.BadRequestException
+import klite.Config
 import klite.Server
+import klite.isDev
 import klite.json.JsonBody
 import klite.metrics
 import java.net.InetSocketAddress
@@ -12,8 +14,8 @@ fun server(port: Int) = Server(InetSocketAddress("0.0.0.0", port)).apply {
     metrics()
     assets(
         "/", AssetsHandler(
-        Thread.currentThread().contextClassLoader.getResource("public")?.let { Path.of(it.toURI()) }
-            ?: throw IllegalStateException("Webapp resources not found")
+            if (Config.isDev) Path.of("src", "main", "webapp")
+            else Path.of("webapp"),
     ))
 
     context("/api") {
