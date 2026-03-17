@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Autocomplete Indirizzi Italiani</title>
+    <link rel="stylesheet" href="/bootstrap-italia/css/bootstrap-italia.min.css"/>
+    <style>
+        body {
+            background: #f0f4f8;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .hero-search {
+            background: linear-gradient(135deg, #0066cc 0%, #003d7a 100%);
+            padding: 2.5rem 0 3.5rem;
+        }
+
+        .search-box {
+            background: #fff;
+            border-radius: 1rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, .16);
+            padding: 2rem 2rem 1.25rem;
+            margin-top: -2rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .result-card {
+            background: #fff;
+            border: 1px solid #e3e8ee;
+            border-radius: .75rem;
+            padding: .85rem 1.1rem;
+            margin-bottom: .55rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: box-shadow .15s, border-color .15s;
+        }
+
+        .result-card:hover {
+            box-shadow: 0 4px 16px rgba(0, 102, 204, .12);
+            border-color: #0066cc;
+        }
+
+        .result-card .street {
+            font-weight: 600;
+            color: #17324d;
+            font-size: .97rem;
+        }
+
+        .result-card .meta {
+            font-size: .8rem;
+            color: #5c6f82;
+            margin-top: .1rem;
+        }
+
+        .result-card .istat-badge {
+            margin-left: auto;
+            font-size: .7rem;
+            font-family: monospace;
+            background: #e8f0fb;
+            color: #0066cc;
+            border-radius: .4rem;
+            padding: .18rem .45rem;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 0;
+            color: #8898aa;
+        }
+
+        .empty-state svg {
+            opacity: .3;
+        }
+
+        #loading {
+            display: none;
+            align-items: center;
+            gap: .5rem;
+        }
+
+        #loading.active {
+            display: flex;
+        }
+
+        main {
+            flex: 1;
+        }
+
+        .it-header-slim-right-zone .icon {
+            width: 1.5rem;
+            height: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="it-header-slim-wrapper">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="it-header-slim-wrapper-content">
+                    <a class="navbar-brand" href="https://github.com/Rattlyy/ANNCSU-Indexer" target="_blank"
+                       rel="noopener">
+                        <svg class="icon icon-xs icon-white me-1" aria-hidden="true">
+                            <use href="/bootstrap-italia/svg/sprites.svg#it-github"></use>
+                        </svg>
+                        ANNCSU-Indexer
+                    </a>
+                    <div class="it-header-slim-right-zone ms-auto">
+                        <a href="/docs" class="btn btn-sm btn-outline-light">
+                            <svg class="icon icon-xl icon-white me-1" aria-hidden="true">
+                                <use href="/bootstrap-italia/svg/sprites.svg#it-file-json"></use>
+                            </svg>
+                            API Docs
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="hero-search">
+    <div class="container text-center text-white">
+        <svg class="icon icon-xl icon-white mb-3" aria-hidden="true" style="width:56px;height:56px;">
+            <use href="/bootstrap-italia/svg/sprites.svg#it-map-marker-circle"></use>
+        </svg>
+        <h1 class="mb-2" style="font-size:1.9rem;font-weight:700;">Autocomplete Indirizzi Italiani</h1>
+        <p class="mb-0" style="opacity:.75;">Cerca strade, civici, comuni e province su tutto il territorio
+            nazionale</p>
+    </div>
+</div>
+
+<main>
+    <div class="container pb-5" style="max-width:860px;">
+
+        <div class="search-box">
+            <div class="form-group mb-1">
+                <label for="searchInput" class="active fw-semibold">Cerca indirizzo</label>
+                <div class="input-group">
+              <span class="input-group-text border-end-0 bg-white" style="border-right:none;">
+                <svg class="icon icon-sm" aria-hidden="true"><use
+                        href="/bootstrap-italia/svg/sprites.svg#it-search"></use></svg>
+              </span>
+                    <input
+                            type="search"
+                            id="searchInput"
+                            class="form-control form-control-lg"
+                            placeholder="Es. Corso Italia 1, Milano, MI, Lombardia"
+                            autocomplete="off"
+                            aria-label="Cerca indirizzo"
+                            style="border-left:none;"
+                    />
+                </div>
+                <small class="form-text text-muted mt-1 d-block">
+                    Formato suggerito: <code>via civico, comune, provincia, regione</code>
+                </small>
+            </div>
+
+            <div class="d-flex align-items-center mt-3">
+                <div id="loading">
+                    <div class="progress-spinner progress-spinner-active size-xs" role="status">
+                        <span class="visually-hidden">Caricamento...</span>
+                    </div>
+                    <small class="text-primary ms-2">Ricerca in corso...</small>
+                </div>
+                <small id="resultCount" class="text-muted ms-auto"></small>
+            </div>
+        </div>
+
+        <div id="resultsContainer" class="mt-3">
+            <div id="emptyState" class="empty-state">
+                <svg class="icon" style="width:60px;height:60px;" aria-hidden="true">
+                    <use href="/bootstrap-italia/svg/sprites.svg#it-search"></use>
+                </svg>
+                <p class="mt-3 lead">Inizia a digitare per cercare un indirizzo</p>
+            </div>
+            <div id="resultsCards"></div>
+        </div>
+
+    </div>
+</main>
+
+
+<script src="/bootstrap-italia/js/bootstrap-italia.bundle.min.js"></script>
+<script>
+    if (typeof bootstrap !== "undefined" && typeof bootstrap.loadFonts === "function") {
+        bootstrap.loadFonts("/bootstrap-italia/fonts");
+    }
+
+    const searchInput = document.getElementById("searchInput");
+    const resultsCards = document.getElementById("resultsCards");
+    const emptyState = document.getElementById("emptyState");
+    const resultCount = document.getElementById("resultCount");
+    const loading = document.getElementById("loading");
+
+    let debounceTimer;
+
+    function escapeHtml(text) {
+        const d = document.createElement("div");
+        d.textContent = String(text ?? "");
+        return d.innerHTML;
+    }
+
+    async function performSearch(query) {
+        if (!query.trim()) {
+            resultsCards.innerHTML = "";
+            emptyState.style.display = "";
+            resultCount.textContent = "";
+            loading.classList.remove("active");
+            return;
+        }
+
+        loading.classList.add("active");
+        resultCount.textContent = "";
+
+        try {
+            const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const results = await res.json();
+
+            emptyState.style.display = "none";
+
+            if (!Array.isArray(results) || results.length === 0) {
+                resultsCards.innerHTML = `
+              <div class="alert alert-info d-flex align-items-center gap-2 mt-2" role="alert">
+                <svg class="icon icon-sm flex-shrink-0"><use href="/bootstrap-italia/svg/sprites.svg#it-info-circle"></use></svg>
+                Nessun risultato per <strong class="ms-1">${escapeHtml(query)}</strong>.
+              </div>`;
+                resultCount.textContent = "0 risultati";
+                return;
+            }
+
+            resultsCards.innerHTML = results.map(addr => {
+                const street = addr.civico ? `${addr.via} ${addr.civico}` : addr.via;
+                return `
+              <div class="result-card">
+                <svg class="icon icon-sm flex-shrink-0" style="color:#0066cc;" aria-hidden="true">
+                  <use href="/bootstrap-italia/svg/sprites.svg#it-map-marker"></use>
+                </svg>
+                <div class="flex-grow-1">
+                  <div class="street">${escapeHtml(street)}</div>
+                  <div class="meta">
+                    ${escapeHtml(addr.comune)}
+                    &bull; ${escapeHtml(addr.provincia)} (${escapeHtml(addr.siglaAutomobilistica)})
+                    &bull; ${escapeHtml(addr.regione)}
+                  </div>
+                </div>
+                <span class="istat-badge" title="Codice ISTAT">${escapeHtml(addr.codiceIstat)}</span>
+              </div>`;
+            }).join("");
+
+            resultCount.textContent = `${results.length} ${results.length === 1 ? "risultato" : "risultati"}`;
+        } catch (err) {
+            console.error(err);
+            emptyState.style.display = "none";
+            resultsCards.innerHTML = `
+            <div class="alert alert-danger d-flex align-items-center gap-2 mt-2" role="alert">
+              Errore durante la ricerca. Riprova più tardi.
+            </div>`;
+            resultCount.textContent = "";
+        } finally {
+            loading.classList.remove("active");
+        }
+    }
+
+    searchInput.addEventListener("input", e => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => performSearch(e.target.value), 300);
+    });
+
+    searchInput.focus();
+</script>
+</body>
+</html>
