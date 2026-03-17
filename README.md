@@ -34,13 +34,16 @@ Tag immagini pubblicate:
 
 Il `Dockerfile` usa 3 stage:
 
-1. `build`: genera uber jar.
-2. `init`: esegue `init` e produce `files/dati.sqlite`.
-3. `runtime`: copia jar + DB e avvia Server.
+1. `lightweight`: copia solo l'uber jar e avvia `serve`.
+2. `runtime`: copia uber jar + `files/dati.sqlite` e avvia `serve`.
+
+Build jar e DB avvengono fuori Docker (piu veloce), poi vengono importati nel container.
 
 Build ed esecuzione:
 
 ```bash
+./gradlew --no-daemon shadowJar
+java -jar build/libs/gmmzanncsu-all.jar init
 docker build -t gmmzanncsu .
 docker run --rm -p 8080:8080 gmmzanncsu
 ```
