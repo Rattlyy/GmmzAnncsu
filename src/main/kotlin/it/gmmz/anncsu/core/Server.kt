@@ -15,7 +15,7 @@ fun server(port: Int) = Server(InetSocketAddress("0.0.0.0", port)).apply {
     assets(
         "/", AssetsHandler(
             if (Config.isDev) Path.of("src", "main", "webapp")
-            else Path.of("webapp"),
+            else Path.of("/app/webapp"),
     ))
 
     context("/api") {
