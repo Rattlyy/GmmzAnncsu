@@ -1,0 +1,110 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "GmmzAnncsu",
+    "version": "0.1",
+    "description": "Microservizio Kotlin per fornire l'autocompletamento di Indirizzi",
+    "contact": {
+      "email": "io@gmmz.dev",
+      "name": "Gmmz",
+      "url": "https://gmmz.dev"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://anncsu.gmmz.dev",
+      "description": "Servizio hostato da gmmz.dev"
+    }
+  ],
+  "paths": {
+    "/api/search": {
+      "get": {
+        "summary": "Search for an address",
+        "operationId": "searchIndirizzo",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "description": "The search string for the address",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful search result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Indirizzo"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - The 'q' parameter is missing or invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Indirizzo": {
+        "type": "object",
+        "required": [
+          "via",
+          "civico",
+          "codiceIstat",
+          "displayName",
+          "comune",
+          "provincia",
+          "regione",
+          "siglaAutomobilistica"
+        ],
+        "properties": {
+          "via": { "type": "string", "example": "Via Roma" },
+          "civico": { "type": "integer", "example": 10 },
+          "codiceIstat": { "type": "string", "example": "H501" },
+          "displayName": { "type": "string", "example": "Via Roma, 10, 00184 Roma RM" },
+          "comune": { "type": "string", "example": "Roma" },
+          "provincia": { "type": "string", "example": "Roma" },
+          "regione": { "type": "string", "example": "Lazio" },
+          "siglaAutomobilistica": { 
+            "type": "string", 
+            "example": "RM",
+            "minLength": 2,
+            "maxLength": 2
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "required": ["message", "reason", "statusCode"],
+        "properties": {
+          "message": { 
+            "type": "string", 
+            "example": "Missing 'q' param" 
+          },
+          "reason": { 
+            "type": "string", 
+            "example": "Bad Request" 
+          },
+          "statusCode": { 
+            "type": "integer", 
+            "example": 400 
+          }
+        }
+      }
+    }
+  }
+}

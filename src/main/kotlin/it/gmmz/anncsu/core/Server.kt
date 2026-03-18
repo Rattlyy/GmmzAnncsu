@@ -1,5 +1,6 @@
 package it.gmmz.anncsu.core
 
+import klite.CorsHandler
 import klite.AssetsHandler
 import klite.BadRequestException
 import klite.Config
@@ -19,6 +20,7 @@ fun server(port: Int) = Server(InetSocketAddress("0.0.0.0", port)).apply {
     ))
 
     context("/api") {
+        before(CorsHandler())
         useOnly<JsonBody>()
 
         get("/search") {
