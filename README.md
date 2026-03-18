@@ -19,47 +19,37 @@ Il database viene creato in `files/dati.sqlite`.
 
 ## CLI
 
-- `init`: scarica file sorgente e costruisce indice/FTS.
+- `init`: scarica dataset ANNCSU e costruisce il database SQLite su cui il programma opera.
 - `serve`: avvia il server su porta `8080`.
 - `server`: alias di `serve`.
 
 ## Docker
 
-Tag immagini pubblicate:
+Due immagini pubblicate ad ogni push e ogni mese:
 
-- lightweight (push): `<project-version>`
-- full con DB inizializzato (push + mensile): `<project-version>-YYYYMMDD`
+- lightweight: `<project-version>`
+- full con DB inizializzato: `<project-version>-YYYYMMDD`
 
 `<project-version>` viene estratta automaticamente da `build.gradle.kts`.
 
-Il `Dockerfile` usa 3 stage:
+Il `Dockerfile` usa 2 stage:
 
 1. `lightweight`: copia solo l'uber jar e avvia `serve`.
 2. `runtime`: copia uber jar + `files/dati.sqlite` e avvia `serve`.
 
-Build jar e DB avvengono fuori Docker (piu veloce), poi vengono importati nel container.
+Build del jar e creazione DB avvengono fuori Docker (avevo bisogno di creare un immagine multi-arch, buildare il tutto dentro Docker sotto QEMU mi portava ad avere build di 1h30), poi vengono importati nel container.
 
-Build ed esecuzione:
-
-```bash
-./gradlew --no-daemon shadowJar
-java -jar build/libs/gmmzanncsu-all.jar init
-docker build -t gmmzanncsu .
-docker run --rm -p 8080:8080 gmmzanncsu
-```
-
-Persistenza DB con immagine lightweight (`:<project-version>`):
-
+Sotto immagine lightweight, consiglio di persistere il file del DB sul disco, per evitare di dover reindexare tutto il DB ogni volta che si vuole avviare il microservizio.
 ```bash
 docker run --rm -v "<tuapath>/files:/app/files" ghcr.io/<owner>/gmmzanncsu:<project-version> init
 docker run --rm -v "<tuapath>/files:/app/files" -p 8080:8080 ghcr.io/<owner>/gmmzanncsu:<project-version> serve
 ```
 
-In questo modo il DB resta persistito su host in `files/dati.sqlite`.
+In questo modo il DB resta salvato su host in `files/dati.sqlite`.
 
-## GitHub Actions (container)
+## GitHub Actions
 
-- Workflow mensile pubblica immagine completa (con `init` gia eseguito) con tag `<project-version>-YYYYMMDD`.
+- Workflow mensile pubblica immagine completa con tag `<project-version>-YYYYMMDD`. 
 - Workflow su push: pubblica
   - immagine lightweight con tag `<project-version>`,
   - immagine completa con tag `<project-version>-YYYYMMDD`.
@@ -67,5 +57,5 @@ In questo modo il DB resta persistito su host in `files/dati.sqlite`.
 ## Note
 
 - La prima inizializzazione richiede circa 11 minuti (circa 47MLN di record).
-- Ricerca full-text basata su SQLite FTS5 con tokenizer trigram.
-
+- L'immagine full pesa ~6.8G.
+- La ricerca full-text è basata su SQLite con estensione FTS5 + tokenizer trigram. I codici civici vengono estratti a parte e cercati tramite una WHERE sul dato atomico, visto che la ricerca trigram non è ottimale per valori <3 caratteri
