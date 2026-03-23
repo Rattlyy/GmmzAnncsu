@@ -1,0 +1,26 @@
+{
+  "image": "mcr.microsoft.com/devcontainers/universal:2",
+    "customizations": {
+    "vscode": {
+      "extensions": [
+        "vscjava.vscode-java-pack",
+        "pivotal.vscode-boot-dev-pack",
+        "mhutchie.git-graph",
+        "rhalaly.scope-to-this",
+        "donjayamanne.githistory",
+        "esbenp.prettier-vscode",
+        "Angular.ng-template",
+        "hediet.vscode-drawio",
+        "cweijan.vscode-database-client2",
+        "naco-siren.gradle-language",
+        "vscjava.vscode-spring-boot-dashboard",
+        "mechatroner.rainbow-csv",
+        "oderwat.indent-rainbow"
+      ]
+    }
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": "latest",
+    "ghcr.io/devcontainers-extra/features/kotlin-sdkman:2": {}
+  }
+}
