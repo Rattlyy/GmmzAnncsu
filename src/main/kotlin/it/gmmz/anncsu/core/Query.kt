@@ -2,6 +2,7 @@ package it.gmmz.anncsu.core
 
 import it.gmmz.anncsu.core.DB.connection
 import it.gmmz.anncsu.types.Indirizzo
+import it.gmmz.anncsu.types.resultSetMapper
 import klite.info
 import klite.logger
 import java.text.Normalizer
@@ -12,10 +13,20 @@ object Query {
     private val log = logger("Query")
 
     fun search(rawInput: String, limit: Int = 30): List<Indirizzo> {
-        val ftsQuery = buildFtsQuery(rawInput) ?: return emptyList()
+        val scopedQuery = buildFtsQuery(rawInput)
         val civicFilter = extractCivic(rawInput)
-        log.info("FTS query: $ftsQuery | civic: $civicFilter")
+        if (scopedQuery == null) return emptyList()
 
+        log.info("FTS scoped query: $scopedQuery | civic: $civicFilter")
+        val scopedResults = executeSearch(scopedQuery, civicFilter, limit)
+        if (scopedResults.isNotEmpty()) return scopedResults
+
+        val fallbackQuery = buildGenericFtsQuery(rawInput) ?: return emptyList()
+        log.info("Scoped query returned 0 rows, falling back to generic query: $fallbackQuery")
+        return executeSearch(fallbackQuery, civicFilter, limit)
+    }
+
+    private fun executeSearch(matchQuery: String, civicFilter: String?, limit: Int): List<Indirizzo> {
         val whereClause = if (civicFilter != null) "AND STRADARIO_FTS.civico = ?" else ""
         val sql = """
             SELECT DISTINCT STRADARIO.*
@@ -27,24 +38,14 @@ object Query {
         """.trimIndent()
 
         connection.prepareStatement(sql).use { ps ->
-            ps.setString(1, ftsQuery)
+            ps.setString(1, matchQuery)
             var idx = 2
             if (civicFilter != null) ps.setString(idx++, civicFilter)
             ps.setInt(idx, limit)
-            
+
             return ps.executeQuery().use { rs ->
                 mutableListOf<Indirizzo>().apply {
-                    while (rs.next()) {
-                        add(Indirizzo(
-                            codiceIstat = rs.getString("codice_istat") ?: "",
-                            via = rs.getString("via") ?: "",
-                            civico = rs.getString("civico") ?: "",
-                            comune = rs.getString("comune") ?: "",
-                            provincia = rs.getString("provincia") ?: "",
-                            regione = rs.getString("regione") ?: "",
-                            siglaAutomobilistica = rs.getString("sigla_automobilistica") ?: "",
-                        ))
-                    }
+                    while (rs.next()) add(resultSetMapper(rs))
                 }
             }
         }
@@ -61,11 +62,11 @@ object Query {
         if (parts.isEmpty()) return null
 
         val fragments = mutableListOf<String>()
-        
+
         for ((i, part) in parts.withIndex()) {
             val tokens = tokenize(part)
             if (tokens.isEmpty()) continue
-            
+
             when (i) {
                 0 -> fragments.add(scopedQuery("via", tokens))
                 1 -> fragments.add(scopedQuery("comune", tokens))
@@ -79,12 +80,19 @@ object Query {
                         fragments.add(scopedQuery("provincia", tokens))
                     }
                 }
+
                 3 -> fragments.add(scopedQuery("regione", tokens))
             }
         }
 
         return fragments.takeIf { it.isNotEmpty() }?.joinToString(" ")
     }
+
+    private fun buildGenericFtsQuery(rawInput: String): String? =
+        tokenize(rawInput)
+            .filterNot { it.any(Char::isDigit) }
+            .takeIf { it.isNotEmpty() }
+            ?.joinToString(" ") { "\"${escape(it)}\"" }
 }
 
 private fun scopedQuery(column: String, tokens: List<String>): String =
