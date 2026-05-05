@@ -1,0 +1,38 @@
+publiccodeYmlVersion: 0.5.0
+name: GmmzAnncsu
+url: https://github.com/Rattlyy/GmmzAnncsu
+landingURL: https://github.com/Rattlyy/GmmzAnncsu/blob/master/README.md
+softwareVersion: Rilasciato a cadenza mensile
+platforms:
+  - web
+categories:
+  - data-visualization
+  - other
+organisation:
+  uri: https://github.com/Rattlyy
+developmentStatus: stable
+softwareType: library
+description:
+  it:
+    localisedName: GmmzAnncsu
+    shortDescription: Autocomplete sul dataset di indirizzi pubblicato da ANNCSU con
+      API in stile Nominatim
+    longDescription: Il programma consente di fornire una fonte affidabile di
+      indirizzi italiani per autocompletamento su campi di testo; Utilizzabile
+      per questionari o ricerca di indirizzi. Rimpiazza Nominatim consumando
+      molte meno risorse e spazio.
+    documentation: https://github.com/Rattlyy/GmmzAnncsu/blob/master/README.md
+    apiDocumentation: https://anncsu.gmmz.dev/swagger-ui.html
+    features:
+      - Indicizzazione e ricerca indirizzi italiani pubblicati su dataset ANNCSU
+legal:
+  license: MIT
+maintenance:
+  type: community
+  contacts:
+    - name: GM
+      email: io@gmmz.dev
+localisation:
+  localisationReady: false
+  availableLanguages:
+    - it
