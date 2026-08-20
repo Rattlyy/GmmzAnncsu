@@ -1,5 +1,5 @@
 [versions]
-kotlin = "2.2.0"
+kotlin = "2.4.0"
 klite = "main-SNAPSHOT"
 univocityParsers = "2.8.4"
 clikt = "5.1.0"
