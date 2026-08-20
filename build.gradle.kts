@@ -9,7 +9,17 @@ version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
-    maven { url = uri("https://jitpack.io") }
+    maven("https://jitpack.io") {
+        name = "jitpack"
+        content {
+            includeGroup("com.github.keksworks.klite")
+        }
+        metadataSources {
+            mavenPom()
+            artifact()
+            ignoreGradleMetadataRedirection()
+        }
+    }
 }
 
 dependencies {
